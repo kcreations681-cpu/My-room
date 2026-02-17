@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Ultimate Room - Master Edition</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Poppins', sans-serif; color: white; }
+        .wrapper { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; perspective: 1000px; }
+        #bg-image { position: absolute; width: 115%; height: 115%; background-image: url('background.jpg'); background-size: cover; background-position: center; transition: transform 0.1s ease-out; z-index: 1; }
+        
+        .title-container { z-index: 10; text-align: center; margin-bottom: 20px; pointer-events: none; }
+        h1 { font-family: 'Pacifico', cursive; font-size: 60px; color: white; text-shadow: 0 0 20px rgba(0,255,136,0.5); }
+
+        /* 4 SHORTCUTS */
+        .button-menu { display: flex; gap: 15px; z-index: 20; margin-bottom: 30px; }
+        .glass-btn { text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; color: white; font-weight: 600; transition: 0.4s; }
+        .glass-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-10px); }
+
+        /* MODALS */
+        .genie-window { position: fixed; top: 50%; left: 50%; width: 100vw; height: 100vh; z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; transform: translate(-50%, -50%) scale(0); transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1); opacity: 0; backdrop-filter: blur(30px); }
+        .genie-window.active { transform: translate(-50%, -50%) scale(1); opacity: 1; display: flex; }
+
+        /* PLAYLIST PLAYER */
+        .player-card { width: 400px; background: rgba(0,0,0,0.7); padding: 30px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .playlist { max-height: 180px; overflow-y: auto; margin: 20px 0; text-align: left; padding-right: 5px; }
+        .song-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 8px 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; }
+        .song-item:hover { background: rgba(0, 255, 136, 0.2); }
+        .delete-btn { color: #ff4d4d; padding: 5px; }
+
+        /* CENTERED PROGRESS */
+        .progress-container { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 5px; margin: 20px 0; cursor: pointer; }
+        #progress-bar { width: 0%; height: 100%; background: #00ff88; border-radius: 5px; }
+
+        /* TIMETABLE */
+        .tt-wrapper { background: white; padding: 25px; border-radius: 20px; color: #333; }
+        table { border-collapse: separate; border-spacing: 5px; width: 100%; text-align: center; }
+        th { background: #eee; padding: 8px; border-radius: 8px; font-size: 12px; }
+        td { background: #f9f9f9; padding: 8px; border-radius: 8px; font-weight: 600; font-size: 11px; }
+
+        /* NAVIGATION BUTTONS */
+        .songs-btn { width: 110px; height: 110px; border: 3px solid #00ff88; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; z-index: 30; background: rgba(0,255,136,0.1); }
+        .tt-btn { position: absolute; bottom: 30px; right: 30px; padding: 15px 30px; background: rgba(255,255,255,0.1); border: 1px solid white; border-radius: 12px; color: white; cursor: pointer; z-index: 30; }
+        .close-btn { position: absolute; top: 40px; right: 40px; font-size: 35px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <div id="bg-image"></div>
+        
+        <div class="title-container">
+            <h1>Welcome to my room</h1>
+        </div>
+
+        <div class="button-menu">
+            <a href="https://youtube.com" class="glass-btn" target="_blank"><i class="fab fa-youtube" style="color:red"></i> YouTube</a>
+            <a href="https://cryzen.io" class="glass-btn" target="_blank"><i class="fas fa-gamepad" style="color:orange"></i> Cryzen.io</a>
+            <a href="https://gemini.google.com" class="glass-btn" target="_blank"><i class="fas fa-robot" style="color:#4285f4"></i> Gemini</a>
+            <a href="https://www.fontspace.com" class="glass-btn" target="_blank"><i class="fas fa-font" style="color:pink"></i> FontSpace</a>
+        </div>
+
+        <div class="songs-btn" onclick="openWin('music-player')">
+            <i class="fas fa-music" style="font-size:30px"></i>
+            <span>PLAYLIST</span>
+        </div>
+
+        <button class="tt-btn" onclick="openWin('tt-modal')">TIMETABLE</button>
+
+        <div id="music-player" class="genie-window">
+            <i class="fas fa-times close-btn" onclick="closeWin('music-player')"></i>
+            <div class="player-card">
+                <h3 id="now-playing">No Song Selected</h3>
+                <div class="playlist" id="playlist-container"></div>
+                <div class="progress-container" onclick="seek(event)">
+                    <div id="progress-bar"></div>
+                </div>
+                <i class="fas fa-play-circle" id="playBtn" onclick="togglePlay()" style="font-size:50px; cursor:pointer"></i>
+                <br><br>
+                <button onclick="document.getElementById('music-input').click()" style="background:#00ff88; border:none; padding:10px 20px; border-radius:20px; color:black; font-weight:bold; cursor:pointer;">+ ADD SONGS</button>
+            </div>
+        </div>
+
+        <div id="tt-modal" class="genie-window">
+            <i class="fas fa-times close-btn" onclick="closeWin('tt-modal')"></i>
+            <div class="tt-wrapper">
+                <table>
+                    <tr><th>DAY</th><th>01</th><th>02</th><th>03</th><th>04</th><th>05</th><th>06</th><th>07</th><th>08</th></tr>
+                    <tr><td>MON</td><td>CIVICS</td><td>ENGLISH</td><td>ARTS</td><td>SCIENCE</td><td>HISTORY</td><td>TAMIL</td><td>MATHS</td><td>PTS</td></tr>
+                    <tr><td>TUE</td><td>HEALTH</td><td>ENGLISH</td><td>MATHS</td><td>GEOG</td><td>TAMIL</td><td>SINHALA</td><td>RELIGION</td><td>SCIENCE</td></tr>
+                    <tr><td colspan="9" style="background:#ddd">INTERVAL</td></tr>
+                    <tr><td>WED</td><td>SCIENCE</td><td>PTS</td><td>MATHS</td><td>TAMIL</td><td>ARTS</td><td>ICT</td><td>HISTORY</td><td>ENGLISH</td></tr>
+                    <tr><td>THU</td><td>TAMIL</td><td>ENGLISH</td><td>CIVICS</td><td>SCIENCE</td><td>HEALTH</td><td>MATHS</td><td>GEOG</td><td>ARTS</td></tr>
+                    <tr><td>FRI</td><td>MATHS</td><td>SCIENCE</td><td>SINHALA</td><td>TAMIL</td><td>ENGLISH</td><td>RELIGION</td><td>LIBRARY</td><td>PTS</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <input type="file" id="music-input" multiple accept="audio/*" style="display:none" onchange="addSongs(event)">
+        <audio id="audio-engine"></audio>
+    </div>
+
+    <script>
+        let playlist = [];
+        let currentIdx = -1;
+        const audio = document.getElementById('audio-engine');
+        const playBtn = document.getElementById('playBtn');
+        const progress = document.getElementById('progress-bar');
+        const playlistUI = document.getElementById('playlist-container');
+
+        function openWin(id) { document.getElementById(id).style.display='flex'; setTimeout(()=>document.getElementById(id).classList.add('active'),10); }
+        function closeWin(id) { document.getElementById(id).classList.remove('active'); setTimeout(()=>document.getElementById(id).style.display='none',500); }
+
+        function addSongs(e) {
+            Array.from(e.target.files).forEach(file => {
+                playlist.push({ name: file.name, url: URL.createObjectURL(file) });
+            });
+            renderPlaylist();
+        }
+
+        function renderPlaylist() {
+            playlistUI.innerHTML = "";
+            playlist.forEach((s, i) => {
+                const item = document.createElement('div');
+                item.className = "song-item";
+                item.innerHTML = `<span onclick="playSong(${i})">${s.name}</span><i class="fas fa-trash delete-btn" onclick="removeSong(${i})"></i>`;
+                playlistUI.appendChild(item);
+            });
+        }
+
+        function playSong(i) {
+            currentIdx = i;
+            audio.src = playlist[i].url;
+            document.getElementById('now-playing').innerText = playlist[i].name;
+            audio.play();
+            playBtn.className = "fas fa-pause-circle";
+        }
+
+        function removeSong(i) {
+            playlist.splice(i, 1);
+            renderPlaylist();
+        }
+
+        function togglePlay() {
+            if(!audio.src) return;
+            if(audio.paused) { audio.play(); playBtn.className="fas fa-pause-circle"; }
+            else { audio.pause(); playBtn.className="fas fa-play-circle"; }
+        }
+
+        audio.ontimeupdate = () => { progress.style.width = (audio.currentTime/audio.duration)*100+"%"; };
+        
+        function seek(e) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth) - 0.5;
+            const y = (e.clientY / window.innerHeight) - 0.5;
+            document.getElementById('bg-image').style.transform = `scale(1.1) translate(${x * -50}px, ${y * -50}px)`;
+        });
+    </script>
+</body>
+</html>
