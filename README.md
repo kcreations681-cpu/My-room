@@ -16,3 +16,6 @@ Welcome to my personalized digital space! This is a custom-built dashboard featu
 
 ## 📸 Preview
 *Background image: background.jpg*
+Note: Built with ❤️ and powered by Gemini AI. I used AI to help explore complex CSS animations and JavaScript logic while learning the fundamentals of web deployment.
+
+❤️IAM 12 YEARS OLD KID IN SRILANKA AND IAM LEARNING CODING!❤️
